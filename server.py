@@ -6,6 +6,7 @@ from storage import Storage
 
 HOST = "127.0.0.1"
 PORT = 5000
+TIMEOUT_SECONDS = 10
 
 storage = Storage()
 
@@ -25,30 +26,41 @@ def handle_message(message):
             return make_error("mensagem duplicada ou fora de ordem")
 
         storage.save_event(message)
-        return make_ack("evento registrado")
+        return make_ack("evento registrado com sucesso")
 
-    if msg_type == "query_status":
+    elif msg_type == "query_status":
         delivery_id = message.get("delivery_id")
-        status = storage.get_status(delivery_id)
         return {
             "type": "query_status_response",
             "delivery_id": delivery_id,
-            "data": status,
+            "data": storage.get_status(delivery_id),
         }
 
-    if msg_type == "query_history":
+    elif msg_type == "query_history":
         delivery_id = message.get("delivery_id")
-        history = storage.get_history(delivery_id)
         return {
             "type": "query_history_response",
             "delivery_id": delivery_id,
-            "data": history,
+            "data": storage.get_history(delivery_id),
         }
 
-    if msg_type == "list_deliveries":
+    elif msg_type == "list_deliveries":
         return {
             "type": "list_deliveries_response",
             "data": storage.list_deliveries(),
+        }
+
+    elif msg_type == "list_inactive_agents":
+        return {
+            "type": "list_inactive_agents_response",
+            "timeout_seconds": TIMEOUT_SECONDS,
+            "data": storage.get_inactive_agents(TIMEOUT_SECONDS),
+        }
+
+    elif msg_type == "query_metrics":
+        return {
+            "type": "query_metrics_response",
+            "data": storage.get_metrics(),
         }
 
     return make_error("tipo de mensagem desconhecido")
@@ -68,11 +80,12 @@ def client_thread(conn, addr):
             messages, buffer = decode_lines(buffer)
 
             for message in messages:
+                print(f"[RECEBIDO] {message}")
                 response = handle_message(message)
                 conn.sendall(encode_message(response))
 
     except Exception as e:
-        print(f"[ERRO] {addr} -> {e}")
+        print(f"[ERRO] conexao {addr}: {e}")
     finally:
         conn.close()
         print(f"[DESCONECTADO] {addr}")
@@ -80,8 +93,9 @@ def client_thread(conn, addr):
 
 def start_server():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind((HOST, PORT))
-    server.listen(5)
+    server.listen(10)
 
     print(f"[SERVIDOR] escutando em {HOST}:{PORT}")
 

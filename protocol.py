@@ -35,12 +35,32 @@ def make_query_history(delivery_id):
     }
 
 
-def make_ack(message, detail="ok"):
+def make_list_deliveries():
+    return {
+        "type": "list_deliveries",
+        "timestamp": now_iso(),
+    }
+
+
+def make_list_inactive_agents():
+    return {
+        "type": "list_inactive_agents",
+        "timestamp": now_iso(),
+    }
+
+
+def make_metrics_query():
+    return {
+        "type": "query_metrics",
+        "timestamp": now_iso(),
+    }
+
+
+def make_ack(detail="ok"):
     return {
         "type": "ack",
         "timestamp": now_iso(),
         "detail": detail,
-        "message": message,
     }
 
 
