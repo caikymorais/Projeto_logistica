@@ -44,7 +44,7 @@ A arquitetura adotada é do tipo **cliente-servidor**, composta por três tipos 
 
 ## 3. Tecnologias utilizadas
 
-- **Linguagem:** Python 3.x
+- **Linguagem:** Python 
 - **Comunicação:** sockets TCP (`socket`, `bind`, `listen`, `accept`, `connect`, `send`, `recv`). 
 - **Formato de mensagens:** JSON (codificado em UTF-8, delimitação por linha).
 - **Arquivos principais:**
